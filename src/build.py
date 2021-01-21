@@ -149,4 +149,4 @@ def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
     moveAssets(siteFolder, assetsPath)
 
 
-generateWebsite('dist/', 'matinales/', 'partials/main.html', 'assets/')
+generateWebsite('docs/', 'matinales/', 'partials/main.html', 'assets/')
