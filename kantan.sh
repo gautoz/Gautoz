@@ -15,7 +15,7 @@ LOCATION="./"
 # The server type you want to use (use the ones provided or create your own):
 SERVER_TYPE="python" 
 # The folder you want to serve with the server
-DIST="dist"
+DIST="docs"
 # The build command you want to use (ex: npm run dev) or leave empty if you just want to refresh the page:
 BUILD="python3 src/build.py"
 
