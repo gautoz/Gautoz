@@ -4,10 +4,26 @@ import os
 import shutil
 import glob
 import re
+import argparse
+import sys
 mistune = __import__('mistune')
 
-# Generates html files in the site folder, using the entries and the template.
-# Also triggers the creation of the breadcrumb and the submenu
+# Checking for dev command
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-dev", "--dev", help="Prints the supplied argument.", action="store_true")
+args = parser.parse_args()
+
+print(args.dev)
+
+buildUrl = ""
+if args.dev == True:
+    buildUrl = "/"
+else:
+    buildUrl = "https://thomasorus.github.io/Gautoz/"
+    # Generates html files in the site folder, using the entries and the template.
+    # Also triggers the creation of the breadcrumb and the submenu
 
 
 def generateHtmlPages(siteFolder, entries, template):
@@ -17,6 +33,7 @@ def generateHtmlPages(siteFolder, entries, template):
         pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
         pageTemplate = re.sub('parentLink', val['parent'], pageTemplate)
         pageTemplate = re.sub('parentString', val['folder'], pageTemplate)
+        pageTemplate = re.sub('buildUrl', buildUrl, pageTemplate)
 
         # Create matinales folder
         folderExists = os.path.exists(siteFolder+val['parent'])

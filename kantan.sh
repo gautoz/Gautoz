@@ -17,7 +17,7 @@ SERVER_TYPE="python"
 # The folder you want to serve with the server
 DIST="docs"
 # The build command you want to use (ex: npm run dev) or leave empty if you just want to refresh the page:
-BUILD="python3 src/build.py"
+BUILD="python3 src/build.py --dev"
 
 
 case $SERVER_TYPE in
