@@ -132,6 +132,7 @@ nav em {
 h1 {
     font-size: var(--s2);
     color: black;
+    line-height: 1;
 }
 
 h2 {
