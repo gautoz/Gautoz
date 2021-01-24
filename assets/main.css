@@ -162,8 +162,12 @@ article {
 }
 
 main a {
-    box-shadow: inset 0 -0.2em 1em 0 #fff, inset 0 -0.4em 0 0 var(--purple-light-transparent);
+    box-shadow: inset 0 -0.2em 1em 0 #fff, inset 0 -0.1em 0 0 var(--purple-light-transparent);
     color: inherit;
+}
+
+main date {
+    display: block;
 }
 
 .container {
@@ -189,13 +193,6 @@ main a {
 .flow-large>*+* {
     margin-top: var(--s3);
 }
-
-
-.listing a {
-    padding-bottom: 2px;
-    box-shadow: inset 0 -0.3em 1em 0 #fff, inset 0 -0.2em 0 0 var(--purple-light);
-}
-
 
 .logo {
     border-radius: 100%;
