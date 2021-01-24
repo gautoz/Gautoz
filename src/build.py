@@ -35,10 +35,12 @@ def generateHtmlPages(siteFolder, entries, template, subPagesList):
         # Checking if root file
         if val["file"] == "index":
             val["pageContent"] = val["pageContent"] + subPagesList
+            pageTemplate = re.sub('pageDate', "", pageTemplate)
             pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
         else:
             pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
-            pageTemplate = re.sub('pageDate', val['date'], pageTemplate)
+            pageTemplate = re.sub('pageDate', "<date>" +
+                                  val['date'] + "</date>", pageTemplate)
 
         # Checking if navigation has value
         if val["parentUrl"] == "":
@@ -241,6 +243,7 @@ def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
         homePageSubList = generateSubPages(entries, 5, folder, True)
         homePage = re.sub('ContentList', homePageSubList +
                           "ContentList", homePage)
+        homePage = re.sub('pageDate', "", homePage)
 
         generateHtmlPages(siteFolder, entries, template, subPagesList)
         moveAssets(siteFolder, assetsPath)
