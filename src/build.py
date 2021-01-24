@@ -48,8 +48,7 @@ def generateHtmlPages(siteFolder, entries, template, subPagesList):
                 "'>"+val['parentText'] + "</a></em></nav>"
             pageTemplate = re.sub('pageNavigation', navHtml, pageTemplate)
         else:
-            navHtml = "<nav><em>Revenir à <a href='" + \
-                "/" + val['parentUrl'] + "'>" + \
+            navHtml = "<nav><em>Revenir à <a href='" + buildUrl + val['parentUrl'] + "'>" + \
                 val['parentText'] + "</a></em></nav>"
             pageTemplate = re.sub('pageNavigation', navHtml, pageTemplate)
 
