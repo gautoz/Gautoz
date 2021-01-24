@@ -191,7 +191,7 @@ def cleanPath(path):
 def generateSubPages(entries, num, folder, title):
     entries.sort(key=lambda x: x["usDate"], reverse=True)
     selectedEntries = entries[:num]
-    subPageList = "<ul class='listing flow-small'>"
+    subPageList = "<ul class='listing'>"
     for entry in selectedEntries:
         if title == True:
             linkUrl = entry["slug"]
