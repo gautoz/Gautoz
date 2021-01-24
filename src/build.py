@@ -207,7 +207,7 @@ def generateSubPages(entries, num, folder, title):
         title = "<h2>" + folder.capitalize() + \
             "</h2>"
         subPageList = title + subPageList
-        subPageLink = "<small><a href='/" + folder + "'>Voir tout</a></small>"
+        subPageLink = "<small><a href='" + buildUrl + folder + "'>Voir tout</a></small>"
         subPageList += subPageLink
     return subPageList
 
