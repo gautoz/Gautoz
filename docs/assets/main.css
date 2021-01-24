@@ -1,3 +1,5 @@
+/* RESET CSS BY ANDY BELL */
+
 /* Box sizing rules */
 *,
 *::before,
@@ -74,6 +76,9 @@ select {
     }
 }
 
+
+/* GAUTOZ CSS */
+
 :root {
     --purple-light: rgb(172, 16, 239);
     --purple-light-transparent: rgba(172, 16, 239, 0.7);
@@ -96,16 +101,6 @@ select {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-}
-
-.logo {
-    border-radius: 100%;
-    margin: 0 auto;
-    max-width: 180px;
-    box-shadow: 3px 3px 3px #ccc;
-    padding: 15px;
-    background: var(--purple-light);
-    background: linear-gradient(84deg, rgba(172, 16, 239, 1) 0%, rgba(89, 39, 224, 1) 72%, rgba(63, 28, 160, 1) 100%);
 }
 
 header {
@@ -196,12 +191,30 @@ main a {
 }
 
 
-.listing {
-    line-height: var(--s1);
-}
-
 .listing a {
     padding-bottom: 2px;
     box-shadow: inset 0 -0.3em 1em 0 #fff, inset 0 -0.2em 0 0 var(--purple-light);
+}
 
+
+.logo {
+    border-radius: 100%;
+    margin: 0 auto;
+    max-width: 180px;
+    box-shadow: 3px 3px 3px #ccc;
+    padding: 15px;
+    background: var(--purple-light);
+    background: linear-gradient(84deg, rgba(172, 16, 239, 1) 0%, rgba(89, 39, 224, 1) 72%, rgba(63, 28, 160, 1) 100%);
+}
+
+@media (max-width: 520px) {
+
+    :root {
+        --s1: var(--s0);
+    }
+
+    .logo {
+        max-width: 120px;
+        padding: 5px;
+    }
 }
