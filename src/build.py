@@ -38,6 +38,7 @@ def generateHtmlPages(siteFolder, entries, template, subPagesList):
             pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
         else:
             pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
+            pageTemplate = re.sub('pageDate', val['date'], pageTemplate)
 
         # Checking if navigation has value
         if val["parentUrl"] == "":
