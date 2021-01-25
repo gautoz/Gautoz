@@ -258,16 +258,40 @@ def createHomePage(template, siteFolder):
 
 
 # Create RSS Feed
-def createRssFeed(rssEntries, rssTemplate):
+def createRssFeed(rssEntries, rssTemplate, rssItemTemplate, siteFolder):
+    template = getHtmlTemplate(rssTemplate)
+    itemTemplate = getHtmlTemplate(rssItemTemplate)
+    rssEntries.sort(key=lambda x: x["usDate"], reverse=True)
 
-    return 0
+    rssItems = ""
+    for rssEntry in rssEntries:
+        entryTemplate = itemTemplate
+        entryTemplate = re.sub(
+            'rssItemTitle', rssEntry["title"], entryTemplate)
+        entryTemplate = re.sub('rssItemUrl', buildUrl +
+                               rssEntry["slug"], entryTemplate)
+        entryTemplate = re.sub(
+            'rssItemDate', rssEntry["usDate"], entryTemplate)
+        entryTemplate = re.sub(
+            'rssItemContent', rssEntry["pageContent"], entryTemplate)
+        rssItems = rssItems + entryTemplate
 
-# Main function, generates the website using all others functions
+    template = re.sub('siteName', config.siteName, template)
+    template = re.sub('siteMetaDescription',
+                      config.siteMetaDescription, template)
+    template = re.sub('buildUrl', buildUrl, template)
+    template = re.sub('dateBuild', str(datetime.now().date()), template)
+    template = re.sub('rssContent', rssItems, template)
+
+    rssFile = open(siteFolder + "feed.xml", "w")
+    rssFile.write(template)
+    rssFile.close()
+    return
 
 
-def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
+def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath, rssTemplate, rssItemTemplate):
     print('Welcome to the builder!')
-    deleteWebsite(siteFolder, assetsPath)
+    deleteWebsite(config.buildFolder, assetsPath)
     template = getHtmlTemplate(templateFile)
     homePage = createHomePage(template, siteFolder)
     rssEntries = []
@@ -303,9 +327,9 @@ def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
     pageFile.close()
 
     # Create RSS File
-    # createRssFeed(rssEntries, rssTemplate)
+    createRssFeed(rssEntries, rssTemplate, rssItemTemplate, siteFolder)
 
 
 # Triggers the website build
 generateWebsite(config.buildFolder, config.contentFolder,
-                config.templateFile, config.assetsFolder)
+                config.templateFile, config.assetsFolder, config.rssTemplate, config.rssItemTemplate)
