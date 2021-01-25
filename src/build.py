@@ -8,6 +8,7 @@ import argparse
 import sys
 from datetime import datetime
 mistune = __import__('mistune')
+config = __import__('config')
 
 # Checking for dev command
 
@@ -20,9 +21,9 @@ print(args.prod)
 
 buildUrl = ""
 if args.prod == False:
-    buildUrl = "/"
+    buildUrl = config.relativeBuildUrl
 else:
-    buildUrl = "https://thomasorus.github.io/Gautoz/"
+    buildUrl = config.absoluteBuildUrl
 
 
 # Generates html files in the site folder, using the entries and the template.
@@ -253,5 +254,5 @@ def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
     pageFile.close()
 
 
-generateWebsite('docs/', ['matinales'],
-                'partials/main.html', 'assets/')
+generateWebsite(config.buildFolder, config.contentFolder,
+                config.templateFile, config.assetsFolder)
