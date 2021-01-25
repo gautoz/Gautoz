@@ -63,6 +63,11 @@ def generateHtmlPages(siteFolder, entries, template, subPagesList):
         # Replaces all occurrences of buildUrl in the template files (assets, urls, etc)
         pageTemplate = re.sub('buildUrl', buildUrl, pageTemplate)
 
+        pageTemplate = re.sub('siteName', config.siteName, pageTemplate)
+        pageTemplate = re.sub('siteMetaDescription',
+                              config.siteMetaDescription, pageTemplate)
+        pageTemplate = re.sub('twitterName', config.twitterName, pageTemplate)
+
         # Checking if content folder exists
         folderExists = os.path.exists(siteFolder+val['folder'])
         # If not, create it
@@ -252,12 +257,20 @@ def createHomePage(template, siteFolder):
     return template
 
 
+# Create RSS Feed
+def createRssFeed(rssEntries, rssTemplate):
+
+    return 0
+
 # Main function, generates the website using all others functions
+
+
 def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
     print('Welcome to the builder!')
     deleteWebsite(siteFolder, assetsPath)
     template = getHtmlTemplate(templateFile)
     homePage = createHomePage(template, siteFolder)
+    rssEntries = []
 
     for folder in contentFolder:
         pages = listPages(folder + "/")
@@ -272,15 +285,25 @@ def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath):
 
         generateHtmlPages(siteFolder, entries, template, subPagesList)
 
+        for entry in entries:
+            rssEntries.append(entry)
+
+     # Move the assets
+    moveAssets(siteFolder, assetsPath)
+
     # Once all sections have been processed, finish the home page
     # Removes the "ContentList" in the partial
     homePage = re.sub('ContentList', "", homePage)
+    homePage = re.sub('siteName', config.siteName, homePage)
+    homePage = re.sub('siteMetaDescription',
+                      config.siteMetaDescription, homePage)
+    homePage = re.sub('twitterName', config.twitterName, homePage)
     pageFile = open(siteFolder + "index.html", "w")
     pageFile.write(homePage)
     pageFile.close()
 
-    # Move the assets
-    moveAssets(siteFolder, assetsPath)
+    # Create RSS File
+    # createRssFeed(rssEntries, rssTemplate)
 
 
 # Triggers the website build
