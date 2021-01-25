@@ -24,6 +24,12 @@ La seule différence avec une page classique est que **la page d'accueil et les 
 
 La page d'accueil ne liste que les 5 dernières entrées, tandis que la page intermédiaire liste toutes les entrées.
 
+En modifiant le fichier `src/config.py` il est possible de changer :
+
+- Le nom du site via `siteName`
+- La meta description du site via `siteMetaDescription`
+- Le compte twitter utilisé lors des embeds twitter via `twitterName`
+
 ## Comment ajouter une nouvelle section 
 
 Le site est prévu pour accueillir autant de sous-sections que nécessaire. Pour en ajouter une :
