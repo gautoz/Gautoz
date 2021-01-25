@@ -13,7 +13,7 @@ Ce repo contient les sources et le contenu du site de [Gautoz](https://twitter.c
 5. Remplir le fichier avec le contenu voulu
 6. Enregistrer
 
-Le nouveau fichier déclenchera la reconstruction du site et sous quelques minutes, la nouvelle page apparaîtra.
+Le nouveau fichier déclenchera la reconstruction du site et sous quelques minutes, la nouvelle page apparaîtra. Le fichier RSS disponible via l'url `/feed.xml` sera aussi mis à jour.
 
 ## Customiser la page d'accueil et les pages intermédiaires
 
