@@ -1,6 +1,6 @@
 contentFolder = ['matinales']
 relativeBuildUrl = "/"
-absoluteBuildUrl = "https://thomasorus.github.io/Gautoz/"
+absoluteBuildUrl = "https://gautoz.cool/"
 buildFolder = "docs/"
 assetsFolder = "assets/"
 templateFile = "partials/main.html"
