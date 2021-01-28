@@ -8,6 +8,8 @@ import argparse
 import sys
 from datetime import datetime
 mistune = __import__('mistune')
+renderer = mistune.Renderer()
+markdown = mistune.Markdown(renderer=renderer)
 config = __import__('config')
 
 
@@ -92,7 +94,7 @@ def getHtmlTemplate(templatePath):
 # Parses markdown and converts it to html
 def getPageContent(page):
     pageContent = open(page, 'r')
-    html = mistune.markdown(pageContent.read())
+    html = markdown(pageContent.read())
     return html
 
 
@@ -246,7 +248,7 @@ def createHomePage(template, siteFolder):
     homeFile = open("home.md", "r")
 
     # Add "contentList" as a future replacement point for sub page listing
-    html = mistune.markdown(homeFile.read()) + "ContentList"
+    html = markdown(homeFile.read()) + "ContentList"
 
     # Replace template strings with content
     template = re.sub('pageTitle', "Accueil", template)
