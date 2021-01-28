@@ -1,105 +1,102 @@
 
-import subprocess
-import os
-import shutil
-import glob
-import re
 import argparse
+import glob
+import os
+import re
+import shutil
+import subprocess
 import sys
 from datetime import datetime
+
+
+# Import local files
 mistune = __import__('mistune')
+config = __import__('config')
+
+
+# Activating the renderer
 renderer = mistune.Renderer()
 markdown = mistune.Markdown(renderer=renderer)
-config = __import__('config')
 
 
 # Checking for dev command
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-prod", "--prod", help="Prints the supplied argument.", action="store_true")
+    "-p", "--prod", help="Prints the supplied argument.", action="store_true")
 args = parser.parse_args()
 
 # Declaring build url that will be used in several parts of the app
-buildUrl = ""
-if args.prod == False:
-    buildUrl = config.relativeBuildUrl
-else:
-    buildUrl = config.absoluteBuildUrl
+build_url = config.relative_build_url
+if args.prod:
+    build_url = config.absolute_build_url
 
 
 # Generates html files in the site folder, using the entries and the template.
-def generateHtmlPages(siteFolder, entries, template, subPagesList):
-    for val in entries:
-        pageTemplate = re.sub('pageTitle', val['title'], template)
+def generate_html_pages(site_folder, entries, template, sub_pages_list, template_nav):
+    for entry in entries:
+        page_template = template.replace('page_title', entry['title'])
 
         # Checking if the page is root of a folder
-        if val["file"] == "index":
+        if entry["file"] == "index":
 
             # If root page
             # Concatenate the content of the index page with the listing of sub-pages
-            # Remove "pageDate" from template
-            # Replaces "pageBody" with the page content in the template
-            val["pageContent"] = val["pageContent"] + subPagesList
-            pageTemplate = re.sub('pageDate', "", pageTemplate)
-            pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
+            # Remove "page_date" from template
+            # Replaces "page_body" with the page content in the template
+            entry["pageContent"] = entry["pageContent"] + sub_pages_list
+            page_template = page_template.replace('page_date', "")
+            page_template = page_template.replace(
+                'page_body', entry['pageContent'])
         else:
             # If content page
-            # Replaces "pageBody" with the page content in the template
-            # Replaces "pageDate" with the page date in the template
-            pageTemplate = re.sub('pageBody', val['pageContent'], pageTemplate)
-            pageTemplate = re.sub('pageDate', "<date>" +
-                                  val['date'] + "</date>", pageTemplate)
+            # Replaces "page_body" with the page content in the template
+            # Replaces "page_date" with the page date in the template
+            page_template = page_template.replace(
+                'page_body', entry['pageContent'])
+            page_template = page_template.replace(
+                'page_date', "<date>" + entry['date'] + "</date>")
 
         # Creating navigation
-        if val["parentUrl"] == "":
+        url_link = build_url
+        url_text = entry['parent_text']
+
+        if entry["parent_url"] == "":
             # If index page, return to the home
-            navHtml = "<nav><em>Revenir à <a href='" + buildUrl + \
-                "'>"+val['parentText'] + "</a></em></nav>"
-            pageTemplate = re.sub('pageNavigation', navHtml, pageTemplate)
+            url_link = build_url
         else:
             # If content page, return to parent page
-            navHtml = "<nav><em>Revenir à <a href='" + buildUrl + val['parentUrl'] + "'>" + \
-                val['parentText'] + "</a></em></nav>"
-            pageTemplate = re.sub('pageNavigation', navHtml, pageTemplate)
+            url_link = build_url + entry['parent_url']
 
-        # Replaces all occurrences of buildUrl in the template files (assets, urls, etc)
-        pageTemplate = re.sub('buildUrl', buildUrl, pageTemplate)
+        nav_template = open(template_nav, 'r').read()
+        nav_html = nav_template.replace("link_url", url_link)
+        nav_html = nav_html.replace("text_url", url_text)
+        page_template = page_template.replace('page_navigation', nav_html)
 
-        pageTemplate = re.sub('siteName', config.siteName, pageTemplate)
-        pageTemplate = re.sub('siteMetaDescription',
-                              config.siteMetaDescription, pageTemplate)
-        pageTemplate = re.sub('twitterName', config.twitterName, pageTemplate)
+        # Replaces all occurrences of build_url in the template files (assets, urls, etc)
+        page_template = page_template.replace('build_url', build_url)
+
+        page_template = page_template.replace('site_name', config.site_name)
+        page_template = page_template.replace(
+            'site_meta_description', config.site_meta_description)
+        page_template = page_template.replace(
+            'twitter_name', config.twitter_name)
 
         # Checking if content folder exists
-        folderExists = os.path.exists(siteFolder+val['folder'])
+        folderExists = os.path.exists(site_folder+entry['folder'])
         # If not, create it
         if folderExists == False:
-            os.mkdir(siteFolder+val['folder'])
+            os.mkdir(site_folder+entry['folder'])
 
         # Write the HTML file
-        pageFile = open(siteFolder + val['slug'], "w")
-        pageFile.write(pageTemplate)
+        pageFile = open(site_folder + entry['slug'], "w")
+        pageFile.write(page_template)
         pageFile.close()
 
     print("All pages created!")
 
 
-# Recovers the html template to be used on the website
-def getHtmlTemplate(templatePath):
-    template = open(templatePath, 'r')
-    html = template.read()
-    return html
-
-
-# Parses markdown and converts it to html
-def getPageContent(page):
-    pageContent = open(page, 'r')
-    html = markdown(pageContent.read())
-    return html
-
-
 # Get title by parsing and cleaning the first line of the markdown file
-def getEntryTitle(page):
+def get_entry_title(page):
     pageContent = open(page, 'r')
     textContent = pageContent.read()
     textContent = textContent.splitlines()
@@ -109,7 +106,7 @@ def getEntryTitle(page):
 
 
 # Get the slug from the markdown file name
-def getEntrySlug(page):
+def get_entry_slug(page):
     slug = page.split("/")[-1]
     slug = re.sub('\.md$', '', slug)
     if slug:
@@ -119,24 +116,24 @@ def getEntrySlug(page):
 
 
 # From the list of files, creates the main array of entries that will be processed later
-def createEntries(pages):
+def create_entries(pages):
     fullContent = []
     for page in pages:
         tempPage = {}
 
         # Process the page with dedicated functions
-        path = cleanPath(page)
-        title = getEntryTitle(page)
-        pageContent = getPageContent(page)
+        path = clean_path(page)
+        title = get_entry_title(page)
+        pageContent = markdown(open(page, 'r').read())
 
         # Create the page object with all the informations we need
         tempPage['slug'] = path["slug"]
         tempPage['file'] = path['file']
         tempPage['folder'] = path["folder"]
-        tempPage['parentUrl'] = path['parentUrl']
-        tempPage['parentText'] = path['parentText']
+        tempPage['parent_url'] = path['parent_url']
+        tempPage['parent_text'] = path['parent_text']
         tempPage['date'] = path['date']
-        tempPage['usDate'] = path['usDate']
+        tempPage['iso_date'] = path['iso_date']
         tempPage['title'] = title
         tempPage['pageContent'] = pageContent
 
@@ -145,193 +142,187 @@ def createEntries(pages):
     return fullContent
 
 
-# Recursively gather all files locations into an array
-def listPages(contentFolder):
-    pages = glob.glob(contentFolder + '**/*.md', recursive=True)
-    return pages
-
-
-# Deletes existing production folder and its content then recreates it
-# Same for the assets folder
-def deleteWebsite(siteFolder, assetsPath):
-    print("Deleting site...")
-    # Checks if production folder exists
-    siteExists = os.path.exists(siteFolder)
-    if siteExists:
-        shutil.rmtree(siteFolder)
-
-    print("Creating folders...")
-    os.mkdir(siteFolder)
-    os.mkdir(siteFolder + assetsPath)
-
-
 # Copy assets to production folder
-def moveAssets(siteFolder, path):
+def move_assets(site_folder, path):
     assets = os.listdir(path)
     if assets:
         for asset in assets:
             asset = os.path.join(path, asset)
             if os.path.isfile(asset):
-                shutil.copy(asset, siteFolder+path)
+                shutil.copy(asset, site_folder+path)
     else:
         print("No assets found!")
 
 
 # Transforms the file locations to an array of strings
-def cleanPath(path):
+def clean_path(path):
     path = re.sub('\.md$', '', path)
     items = path.split('/')
-    pathItems = {}
-    pathItems["slug"] = path + ".html"
-    pathItems["folder"] = items[0]
-    pathItems["file"] = items[1]
+    path_items = {}
+    path_items["slug"] = path + ".html"
+    path_items["folder"] = items[0]
+    path_items["file"] = items[1]
 
-    if pathItems["file"] == "index":
-        pathItems["parentUrl"] = ""
-        pathItems["parentText"] = "l'accueil"
+    if path_items["file"] == "index":
+        path_items["parent_url"] = ""
+        path_items["parent_text"] = "l'accueil"
     else:
-        pathItems["parentUrl"] = items[0]
-        pathItems["parentText"] = items[0]
+        path_items["parent_url"] = items[0]
+        path_items["parent_text"] = items[0]
 
-    pathItems["date"] = items[1]
+    path_items["date"] = items[1]
 
     # Converts the EU date to US date to allow page sorting
-    if pathItems["date"] != "index":
-        pathItems["usDate"] = str(
-            datetime.strptime(pathItems["date"], '%d-%m-%Y'))
+    if path_items["date"] != "index":
+        path_items["iso_date"] = str(
+            datetime.strptime(path_items["date"], '%d-%m-%Y'))
     else:
         # If index page, add a fake date to avoid empty object
-        pathItems["usDate"] = str(datetime.strptime("01-01-2000", '%d-%m-%Y'))
+        path_items["iso_date"] = str(
+            datetime.strptime("01-01-2000", '%d-%m-%Y'))
 
-    return pathItems
+    return path_items
 
 
 # Generate the list of sub pages for each section
-def generateSubPages(entries, num, folder, title):
+def generate_sub_pages(entries, num, folder, title):
 
-    # Sort entries by date using the usDate format
-    entries.sort(key=lambda x: x["usDate"], reverse=True)
+    # Sort entries by date using the iso_date format
+    entries.sort(key=lambda x: x["iso_date"], reverse=True)
 
     # Take n number of entries (5 for the home, all for the sub-section pages)
-    selectedEntries = entries[:num]
+    selected_entries = entries[:num]
 
     # Create the list
-    subPageList = "<ul class='listing'>"
-    for entry in selectedEntries:
+    sub_page_list = "<ul class='listing'>"
+    for entry in selected_entries:
         if title == True:
-            linkUrl = entry["slug"]
+            link_url = entry["slug"]
         else:
-            linkUrl = entry["file"] + ".html"
+            link_url = entry["file"] + ".html"
 
         if entry["file"] != "index":
             entryString = "<li><a href='" + \
-                linkUrl + "'>" + entry["date"] + \
+                link_url + "'>" + entry["date"] + \
                 " : " + entry["title"] + "</a></li>\n"
-            subPageList = subPageList + entryString
-    subPageList += "</ul>"
+            sub_page_list = sub_page_list + entryString
+    sub_page_list += "</ul>"
 
     # If a title is necessary, use the folder name
     if title == True:
         title = "<h2>" + folder.capitalize() + \
             "</h2>"
-        subPageList = title + subPageList
-        subPageLink = "<small><a href='" + buildUrl + folder + "'>Voir tout</a></small>"
-        subPageList += subPageLink
+        sub_page_list = title + sub_page_list
+        sub_page_link = "<small><a href='" + \
+            build_url + folder + "'>Voir tout</a></small>"
+        sub_page_list += sub_page_link
 
-    return subPageList
+    return sub_page_list
 
 
 # Creates the home page using home.md
-def createHomePage(template, siteFolder):
+def create_home_page(template, site_folder):
 
-    # Read the file
-    homeFile = open("home.md", "r")
-
-    # Add "contentList" as a future replacement point for sub page listing
-    html = markdown(homeFile.read()) + "ContentList"
+    # Read the file and add "content_list" as a future replacement point for sub page listing
+    html = markdown(open("home.md", "r").read()) + "content_list"
 
     # Replace template strings with content
-    template = re.sub('pageTitle', "Accueil", template)
-    template = re.sub('pageBody', html, template)
-    template = re.sub('buildUrl', buildUrl, template)
-    template = re.sub('pageNavigation', "", template)
+    template = template.replace('page_title', "Accueil")
+    template = template.replace('page_body', html)
+    template = template.replace('build_url', build_url)
+    template = template.replace('page_navigation', "")
 
     return template
 
 
 # Create RSS Feed
-def createRssFeed(rssEntries, rssTemplate, rssItemTemplate, siteFolder):
-    template = getHtmlTemplate(rssTemplate)
-    itemTemplate = getHtmlTemplate(rssItemTemplate)
-    rssEntries.sort(key=lambda x: x["usDate"], reverse=True)
+def create_rss_feed(rss_entries, rss_template, rss_item_template, site_folder):
+    template = open(rss_template, 'r').read()
+    itemTemplate = open(rss_item_template, 'r').read()
+    rss_entries.sort(key=lambda x: x["iso_date"], reverse=True)
 
-    rssItems = ""
-    for rssEntry in rssEntries:
-        entryTemplate = itemTemplate
-        entryTemplate = re.sub(
-            'rssItemTitle', rssEntry["title"], entryTemplate)
-        entryTemplate = re.sub('rssItemUrl', buildUrl +
-                               rssEntry["slug"], entryTemplate)
-        entryTemplate = re.sub(
-            'rssItemDate', rssEntry["usDate"], entryTemplate)
-        entryTemplate = re.sub(
-            'rssItemContent', rssEntry["pageContent"], entryTemplate)
-        rssItems = rssItems + entryTemplate
+    rss_items = ""
+    for rss_entry in rss_entries:
+        entry_template = itemTemplate
+        entry_template = entry_template.replace(
+            'rssItemTitle', rss_entry["title"])
+        entry_template = entry_template.replace('rssItemUrl', build_url +
+                                                rss_entry["slug"])
+        entry_template = entry_template.replace(
+            'rssItemDate', rss_entry["iso_date"])
+        entry_template = entry_template.replace(
+            'rssItemContent', rss_entry["pageContent"])
+        rss_items = rss_items + entry_template
 
-    template = re.sub('siteName', config.siteName, template)
-    template = re.sub('siteMetaDescription',
-                      config.siteMetaDescription, template)
-    template = re.sub('buildUrl', buildUrl, template)
-    template = re.sub('dateBuild', str(datetime.now().date()), template)
-    template = re.sub('rssContent', rssItems, template)
+    template = template.replace('site_name', config.site_name)
+    template = template.replace('site_meta_description',
+                                config.site_meta_description)
+    template = template.replace('build_url', build_url)
+    template = template.replace('date_build', str(
+        datetime.now().date()))
+    template = template.replace('rss_content', rss_items)
 
-    rssFile = open(siteFolder + "feed.xml", "w")
+    rssFile = open(site_folder + "feed.xml", "w")
     rssFile.write(template)
     rssFile.close()
     return
 
 
-def generateWebsite(siteFolder, contentFolder, templateFile, assetsPath, rssTemplate, rssItemTemplate):
+def generate_website():
     print('Welcome to the builder!')
-    deleteWebsite(config.buildFolder, assetsPath)
-    template = getHtmlTemplate(templateFile)
-    homePage = createHomePage(template, siteFolder)
-    rssEntries = []
 
-    for folder in contentFolder:
-        pages = listPages(folder + "/")
-        entries = createEntries(pages)
-        subPagesList = generateSubPages(entries, len(entries), folder, False)
+    # If build folder exists delete it
+    if os.path.exists(config.build_folder):
+        shutil.rmtree(config.build_folder)
+
+    # Make new folders
+    os.makedirs(config.build_folder + config.assets_folder)
+
+    # Get main html template
+    template = open(config.template_file, 'r').read()
+
+    # Create home page
+    home_page = create_home_page(template, config.build_folder)
+
+    rss_entries = []
+
+    for folder in config.content_folder:
+        pages = glob.glob(folder + '**/*.md', recursive=True)
+        entries = create_entries(pages)
+        sub_pages_list = generate_sub_pages(
+            entries, len(entries), folder, False)
 
         # For each section, create a short listing of sub pages and add it to the home page
-        homePageSubList = generateSubPages(entries, 5, folder, True)
-        homePage = re.sub('ContentList', homePageSubList +
-                          "ContentList", homePage)
-        homePage = re.sub('pageDate', "", homePage)
+        home_pageSubList = generate_sub_pages(entries, 5, folder, True)
+        home_page = home_page.replace('content_list', home_pageSubList +
+                                      "content_list")
+        home_page = home_page.replace('page_date', "")
 
-        generateHtmlPages(siteFolder, entries, template, subPagesList)
+        generate_html_pages(config.build_folder, entries, template,
+                            sub_pages_list, config.template_nav)
 
         for entry in entries:
-            rssEntries.append(entry)
+            rss_entries.append(entry)
 
      # Move the assets
-    moveAssets(siteFolder, assetsPath)
+    move_assets(config.build_folder, config.assets_folder)
 
     # Once all sections have been processed, finish the home page
-    # Removes the "ContentList" in the partial
-    homePage = re.sub('ContentList', "", homePage)
-    homePage = re.sub('siteName', config.siteName, homePage)
-    homePage = re.sub('siteMetaDescription',
-                      config.siteMetaDescription, homePage)
-    homePage = re.sub('twitterName', config.twitterName, homePage)
-    pageFile = open(siteFolder + "index.html", "w")
-    pageFile.write(homePage)
+    # Removes the "content_list" in the partial
+    home_page = home_page.replace('content_list', "")
+    home_page = home_page.replace('site_name', config.site_name)
+    home_page = home_page.replace('site_meta_description',
+                                  config.site_meta_description)
+    home_page = home_page.replace(
+        'twitter_name', config.twitter_name)
+    pageFile = open(config.build_folder + "index.html", "w")
+    pageFile.write(home_page)
     pageFile.close()
 
     # Create RSS File
-    createRssFeed(rssEntries, rssTemplate, rssItemTemplate, siteFolder)
+    create_rss_feed(rss_entries, config.rss_template,
+                    config.rss_item_template, config.build_folder)
 
 
 # Triggers the website build
-generateWebsite(config.buildFolder, config.contentFolder,
-                config.templateFile, config.assetsFolder, config.rssTemplate, config.rssItemTemplate)
+generate_website()
