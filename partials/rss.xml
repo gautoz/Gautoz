@@ -1,15 +1,15 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-<atom:link href="buildUrlfeed.xml" rel="self" type="application/rss+xml" />
-<title>siteName | siteMetaDescription</title>
-<link>buildUrl</link>
-<description>siteName — siteMetaDescription</description>
-<lastBuildDate>dateBuild</lastBuildDate>
+<atom:link href="build_urlfeed.xml" rel="self" type="application/rss+xml" />
+<title>name_of_site | site_meta_description</title>
+<link>build_url</link>
+<description>name_of_site — site_meta_description</description>
+<lastBuildDate>date_build</lastBuildDate>
 <image>
-  <url>buildUrlassets/gautoz.png</url>
-  <title>siteName — siteMetaDescription</title>
-<link>buildUrl</link>
+  <url>build_urlassets/gautoz.png</url>
+  <title>name_of_site — site_meta_description</title>
+<link>build_url</link>
 </image>
-rssContent
+rss_content
 </channel>
 </rss>
