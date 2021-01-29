@@ -8,7 +8,6 @@ import subprocess
 import sys
 from datetime import datetime
 
-
 # Import local files
 mistune = __import__('mistune')
 config = __import__('config')
@@ -75,7 +74,8 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
         # Replaces all occurrences of build_url in the template files (assets, urls, etc)
         page_template = page_template.replace('build_url', build_url)
 
-        page_template = page_template.replace('site_name', config.site_name)
+        page_template = page_template.replace(
+            'name_of_site', config.name_of_site)
         page_template = page_template.replace(
             'site_meta_description', config.site_meta_description)
         page_template = page_template.replace(
@@ -254,7 +254,7 @@ def create_rss_feed(rss_entries, rss_template, rss_item_template, site_folder):
             'rssItemContent', rss_entry["pageContent"])
         rss_items = rss_items + entry_template
 
-    template = template.replace('site_name', config.site_name)
+    template = template.replace('name_of_site', config.name_of_site)
     template = template.replace('site_meta_description',
                                 config.site_meta_description)
     template = template.replace('build_url', build_url)
@@ -310,7 +310,7 @@ def generate_website():
     # Once all sections have been processed, finish the home page
     # Removes the "content_list" in the partial
     home_page = home_page.replace('content_list', "")
-    home_page = home_page.replace('site_name', config.site_name)
+    home_page = home_page.replace('name_of_site', config.name_of_site)
     home_page = home_page.replace('site_meta_description',
                                   config.site_meta_description)
     home_page = home_page.replace(
