@@ -15,6 +15,20 @@ Ce repo contient les sources et le contenu du site de [Gautoz](https://twitter.c
 
 Le nouveau fichier déclenchera la reconstruction du site et sous quelques minutes, la nouvelle page apparaîtra. Le fichier RSS disponible via l'url `/feed.xml` sera aussi mis à jour.
 
+## Comment uploader et ajouter une image dans un page ?
+ 
+1. Allez dans le dossiers `/medias` 
+2. Utilisez le bouton `add-file` puis `upload-file` pour envoyer votre image (par exemple `image1.jpg`)
+2. Dans votre page, utilisez la syntaxe markdown pour l'ajouter : `![image1](image1.jpg)`
+
+Lors de la construction du site l'image sera immédiatement copiée et le lien sera créé. Attention à compresser vos image ! Utilisez par exemple [Tiny PNG](https://tinypng.com/)
+
+## Comment ajouter une vidéo venant de youtube, vimeo, etc ?
+
+- Dans votre page, copiez le code html donné par youtube ou vimeo. Il doit commencer par `<iframe `.
+
+Vous n'avez rien d'autre à faire, le générateur se chargera de créer la vidéo.
+
 ## Customiser la page d'accueil et les pages intermédiaires
 
 - Le contenu de la page d'accueil se trouve dans le fichier `home.md`. Il peut être rédigé comme n'importe quel fichier markdown.
