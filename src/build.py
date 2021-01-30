@@ -42,7 +42,7 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
             # Concatenate the content of the index page with the listing of sub-pages
             # Remove "page_date" from template
             # Replaces "page_body" with the page content in the template
-            entry["pageContent"] = entry["pageContent"] + sub_pages_list
+            entry["pageContent"] += sub_pages_list
             page_template = page_template.replace('page_date', "")
             page_template = page_template.replace(
                 'page_body', entry['pageContent'])
@@ -53,13 +53,13 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
             page_template = page_template.replace(
                 'page_body', entry['pageContent'])
             page_template = page_template.replace(
-                'page_date', "<date>" + entry['date'] + "</date>")
+                'page_date', "<date>%s</date>" % (entry['date']))
 
         # Creating navigation
         url_link = build_url
         url_text = entry['parent_text']
 
-        if entry["parent_url"] == "":
+        if not entry["parent_url"]:
             # If index page, return to the home
             url_link = build_url
         else:
@@ -84,13 +84,13 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
         # Checking if content folder exists
         folderExists = os.path.exists(site_folder+entry['folder'])
         # If not, create it
-        if folderExists == False:
+        if not folderExists:
             os.mkdir(site_folder+entry['folder'])
 
         # Write the HTML file
-        pageFile = open(site_folder + entry['slug'], "w")
-        pageFile.write(page_template)
-        pageFile.close()
+        slug_file = site_folder + entry['slug']
+        with open(slug_file, 'w') as fobj:
+            fobj.write(page_template)
 
     print("All pages created!")
 
@@ -102,6 +102,7 @@ def get_entry_title(page):
     textContent = textContent.splitlines()
     textContent = textContent[0]
     textContent = textContent.replace('# ', '')
+
     return textContent
 
 
@@ -158,10 +159,11 @@ def move_assets(site_folder, path):
 def clean_path(path):
     path = re.sub('\.md$', '', path)
     items = path.split('/')
-    path_items = {}
-    path_items["slug"] = path + ".html"
-    path_items["folder"] = items[0]
-    path_items["file"] = items[1]
+    path_items = {
+        "slug": path + ".html",
+        "folder": items[0],
+        "file": items[1],
+    }
 
     if path_items["file"] == "index":
         path_items["parent_url"] = ""
@@ -196,26 +198,24 @@ def generate_sub_pages(entries, num, folder, title):
     # Create the list
     sub_page_list = "<ul class='listing'>"
     for entry in selected_entries:
-        if title == True:
+        if title:
             link_url = entry["slug"]
         else:
             link_url = entry["file"] + ".html"
 
         if entry["file"] != "index":
-            entryString = "<li><a href='" + \
-                link_url + "'>" + entry["date"] + \
-                " : " + entry["title"] + "</a></li>\n"
-            sub_page_list = sub_page_list + entryString
+            entry_string = "<li><a href='" + link_url + "'>" + \
+                entry["date"] + " : " + entry["title"] + "</a></li>\n"
+            sub_page_list += entry_string
     sub_page_list += "</ul>"
 
     # If a title is necessary, use the folder name
-    if title == True:
-        title = "<h2>" + folder.capitalize() + \
-            "</h2>"
+    if title:
+        title = "<h2>%s</h2>" % folder.capitalize()
         sub_page_list = title + sub_page_list
-        sub_page_link = "<small><a href='" + \
-            build_url + folder + "'>Voir tout</a></small>"
-        sub_page_list += sub_page_link
+        sub_page_link = build_url + folder
+        sub_page_link_html = "<small><a href='%s'>Voir tout</a></small>" % sub_page_link
+        sub_page_list += sub_page_link_html
 
     return sub_page_list
 
@@ -252,7 +252,7 @@ def create_rss_feed(rss_entries, rss_template, rss_item_template, site_folder):
             'rssItemDate', rss_entry["iso_date"])
         entry_template = entry_template.replace(
             'rssItemContent', rss_entry["pageContent"])
-        rss_items = rss_items + entry_template
+        rss_items += entry_template
 
     template = template.replace('name_of_site', config.name_of_site)
     template = template.replace('site_meta_description',
@@ -262,9 +262,10 @@ def create_rss_feed(rss_entries, rss_template, rss_item_template, site_folder):
         datetime.now().date()))
     template = template.replace('rss_content', rss_items)
 
-    rssFile = open(site_folder + "feed.xml", "w")
-    rssFile.write(template)
-    rssFile.close()
+    slug_file = site_folder + "feed.xml"
+    with open(slug_file, 'w') as fobj:
+        fobj.write(template)
+
     return
 
 
@@ -315,9 +316,10 @@ def generate_website():
                                   config.site_meta_description)
     home_page = home_page.replace(
         'twitter_name', config.twitter_name)
-    pageFile = open(config.build_folder + "index.html", "w")
-    pageFile.write(home_page)
-    pageFile.close()
+
+    slug_file = config.build_folder + "index.html"
+    with open(slug_file, 'w') as fobj:
+        fobj.write(home_page)
 
     # Create RSS File
     create_rss_feed(rss_entries, config.rss_template,
