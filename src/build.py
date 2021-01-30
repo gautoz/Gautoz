@@ -116,6 +116,32 @@ def get_entry_slug(page):
         return ''
 
 
+def style_iframes(page):
+    regex = r"<iframe.+?[\"'].+?><\/iframe>"
+    matches = re.finditer(regex, page, re.MULTILINE)
+
+    for matchNum, match in enumerate(matches, start=1):
+        match = match.group()
+        iframe = "<figure class='youtube'>%s</figure>" % match
+        page = page.replace(match, iframe)
+    return page
+
+# Checks for local images links in markdown and add the build_url and medias_folder url
+
+
+def fix_images_urls(page):
+    regex = r"\!\[.*\]\((.*)\)"
+    matches = re.finditer(regex, page, re.MULTILINE)
+
+    for matchNum, match in enumerate(matches, start=1):
+        for groupNum in range(0, len(match.groups())):
+            captured_group = match.group(groupNum + 1)
+            if captured_group[:4] != "http":
+                full_url = build_url + config.medias_folder + captured_group
+                page = page.replace(captured_group, full_url)
+    return page
+
+
 # From the list of files, creates the main array of entries that will be processed later
 def create_entries(pages):
     fullContent = []
@@ -125,7 +151,11 @@ def create_entries(pages):
         # Process the page with dedicated functions
         path = clean_path(page)
         title = get_entry_title(page)
-        pageContent = markdown(open(page, 'r').read())
+
+        markdown_text = open(page, 'r').read()
+        markdown_text = style_iframes(markdown_text)
+        markdown_text = fix_images_urls(markdown_text)
+        pageContent = markdown(markdown_text)
 
         # Create the page object with all the informations we need
         tempPage['slug'] = path["slug"]
@@ -144,7 +174,7 @@ def create_entries(pages):
 
 
 # Copy assets to production folder
-def move_assets(site_folder, path):
+def move_files(site_folder, path):
     assets = os.listdir(path)
     if assets:
         for asset in assets:
@@ -278,6 +308,7 @@ def generate_website():
 
     # Make new folders
     os.makedirs(config.build_folder + config.assets_folder)
+    os.makedirs(config.build_folder + config.medias_folder)
 
     # Get main html template
     template = open(config.template_file, 'r').read()
@@ -306,7 +337,8 @@ def generate_website():
             rss_entries.append(entry)
 
      # Move the assets
-    move_assets(config.build_folder, config.assets_folder)
+    move_files(config.build_folder, config.assets_folder)
+    move_files(config.build_folder, config.medias_folder)
 
     # Once all sections have been processed, finish the home page
     # Removes the "content_list" in the partial
