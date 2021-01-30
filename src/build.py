@@ -227,7 +227,7 @@ def create_home_page(template, site_folder):
     html = markdown(open("home.md", "r").read()) + "content_list"
 
     # Replace template strings with content
-    template = template.replace('page_title', "Accueil")
+    template = template.replace('page_title', config.home_name)
     template = template.replace('page_body', html)
     template = template.replace('build_url', build_url)
     template = template.replace('page_navigation', "")
