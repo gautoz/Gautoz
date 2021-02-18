@@ -142,7 +142,13 @@ def fix_images_urls(page):
     return page
 
 
+def fix_amp(page):
+    page = page.replace("&", "&amp;")
+    return page
+
 # From the list of files, creates the main array of entries that will be processed later
+
+
 def create_entries(pages):
     fullContent = []
     for page in pages:
@@ -165,7 +171,7 @@ def create_entries(pages):
         tempPage['parent_text'] = path['parent_text']
         tempPage['date'] = path['date']
         tempPage['iso_date'] = path['iso_date']
-        tempPage['title'] = title
+        tempPage['title'] = fix_amp(title)
         tempPage['pageContent'] = pageContent
 
         fullContent.append(tempPage)
