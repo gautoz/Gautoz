@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 from datetime import datetime
+import pathlib
 
 # Import local files
 mistune = __import__('mistune')
@@ -69,6 +70,7 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
         nav_template = open(template_nav, 'r').read()
         nav_html = nav_template.replace("link_url", url_link)
         nav_html = nav_html.replace("text_url", url_text)
+        nav_html = nav_html.replace("go_back", config.go_back)
         page_template = page_template.replace('page_navigation', nav_html)
 
         # Replaces all occurrences of build_url in the template files (assets, urls, etc)
@@ -84,8 +86,9 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
         # Checking if content folder exists
         folderExists = os.path.exists(site_folder+entry['folder'])
         # If not, create it
-        if not folderExists:
-            os.mkdir(site_folder+entry['folder'])
+        if config.flat_build == False:
+            if not folderExists:
+                os.mkdir(site_folder+entry['folder'])
 
         # Write the HTML file
         slug_file = site_folder + entry['slug']
@@ -143,7 +146,24 @@ def fix_images_urls(page):
 
 
 def fix_amp(page):
-    page = page.replace("&", "&amp;")
+    page = page.replace(" & ", " &amp; ")
+    return page
+
+def fix_wiki_links(page, path):
+    regex = r"\[\[([\s\S]+?\|?[\s\S]+?)\]\]"
+    matches = re.finditer(regex, page, re.MULTILINE)
+    for matchNum, match in enumerate(matches, start=1):
+        for groupNum in range(0, len(match.groups())):
+            captured_group = match.group(groupNum + 1)
+            link_elem = captured_group.split("|")
+            if len(link_elem) > 1:
+                full_url = "<a href='" + build_url + link_elem[1].strip() + ".html' >" + link_elem[0].strip() + "</a>"
+            else:
+                if config.flat_build:
+                    full_url = "<a href='" + build_url + link_elem[0].strip() + ".html' >" + link_elem[0].strip() + "</a>"
+                else:
+                    full_url = "<a href='" + build_url + path + "/" + link_elem[0].strip() + ".html' >" + link_elem[0].strip() + "</a>"
+            page = page.replace(match[0], full_url)
     return page
 
 # From the list of files, creates the main array of entries that will be processed later
@@ -161,6 +181,7 @@ def create_entries(pages):
         markdown_text = open(page, 'r').read()
         markdown_text = style_iframes(markdown_text)
         markdown_text = fix_images_urls(markdown_text)
+        markdown_text = fix_wiki_links(markdown_text, path["folder"])
         pageContent = markdown(markdown_text)
 
         # Create the page object with all the informations we need
@@ -193,31 +214,71 @@ def move_files(site_folder, path):
 
 # Transforms the file locations to an array of strings
 def clean_path(path):
-    path = re.sub('\.md$', '', path)
-    items = path.split('/')
+    path_clean = re.sub('\.md$', '', path)
+    items = path_clean.split('/')
     path_items = {
-        "slug": path + ".html",
+        "slug" : None,
+        "date" : None,
         "folder": items[0],
-        "file": items[1],
+        "file": items[1]
     }
+
+    # xx-xx-xxxx = xx-xx-xxxx.html
+    # xx-xx-xxxx-string or string = string.html or /folder/string.html
+
+    # Checking if the file has a date
+    regex = r"(?:[0-9]{2}-){2}[0-9]{4}"
+    match = re.match(regex, path_items["file"])
+    has_date = False
+
+    if match:
+        has_date = True
+
+    if has_date:
+        if match[0] != path_items["file"]:
+            path_items["date"] = match[0]
+            path_items["slug"] = path_items["file"].replace(match[0] + "-", "") + ".html"
+        else:
+            path_items["date"] = match[0]
+            path_items["slug"] = path_items["file"] + ".html"
+
+        # Converts the EU date to US date to allow page sorting
+        if config.date_format == "EU":
+            path_items["iso_date"] = str(datetime.strptime(path_items["date"], '%d-%m-%Y'))
+        if config.date_format == "ISO":
+            path_items["iso_date"] = str(datetime.strptime(path_items["date"], '%Y-%m-%d'))
+    else:
+        path_items["slug"] = path_items["file"] + ".html"
+
+        last_edit = str(subprocess.check_output('git log -1 --format="%ci" ' + path, shell=True)).replace("b'", "").replace("\\n'", '')
+        last_edit_iso = datetime.strptime(last_edit[:-6], "%Y-%m-%d %H:%M:%S")
+
+        print(path)
+        print(str(last_edit_iso) + "\n")
+
+        if config.date_format == "EU":
+            path_items["date"] = str(last_edit_iso.strftime("%d-%m-%Y %H:%M:%S"))
+        else:
+            path_items["date"] = str(last_edit_iso)
+
+        path_items["iso_date"] = str(last_edit_iso)
+
+    if config.flat_build == False:
+        path_items["slug"] = path_items["folder"] + "/" + path_items["slug"]
 
     if path_items["file"] == "index":
         path_items["parent_url"] = ""
-        path_items["parent_text"] = "l'accueil"
+        path_items["parent_text"] = config.home_name
+        if config.flat_build:
+            path_items["slug"] = path_items["folder"] + ".html"
     else:
-        path_items["parent_url"] = items[0]
-        path_items["parent_text"] = items[0]
+        if config.flat_build:
+            path_items["parent_url"] = path_items["folder"] + ".html"
+            path_items["parent_text"] = path_items["folder"].replace("-", " ").capitalize()
+        else:
+            path_items["parent_url"] = path_items["folder"]
+            path_items["parent_text"] = path_items["folder"].replace("-", " ").capitalize()
 
-    path_items["date"] = items[1]
-
-    # Converts the EU date to US date to allow page sorting
-    if path_items["date"] != "index":
-        path_items["iso_date"] = str(
-            datetime.strptime(path_items["date"], '%d-%m-%Y'))
-    else:
-        # If index page, add a fake date to avoid empty object
-        path_items["iso_date"] = str(
-            datetime.strptime("01-01-2000", '%d-%m-%Y'))
 
     return path_items
 
@@ -240,8 +301,9 @@ def generate_sub_pages(entries, num, folder, title):
             link_url = entry["file"] + ".html"
 
         if entry["file"] != "index":
-            entry_string = "<li><a href='" + link_url + "'>" + \
-                entry["date"] + " : " + entry["title"] + "</a></li>\n"
+            entry_string = "<li><h3><a href='" + link_url + \
+                "'>" + entry["title"] + "</a></h3><small>" + \
+                entry["date"] + "</small></li>\n"
             sub_page_list += entry_string
     sub_page_list += "</ul>"
 
@@ -249,8 +311,11 @@ def generate_sub_pages(entries, num, folder, title):
     if title:
         title = "<h2>%s</h2>" % folder.capitalize()
         sub_page_list = title + sub_page_list
-        sub_page_link = build_url + folder
-        sub_page_link_html = "<small><a href='%s'>Voir tout</a></small>" % sub_page_link
+        if config.flat_build:
+            sub_page_link = build_url + folder + ".html"
+        else:
+            sub_page_link = build_url + folder
+        sub_page_link_html = "<small><a href='%s'>" % sub_page_link + config.see_all + "</a></small>"
         sub_page_list += sub_page_link_html
 
     return sub_page_list
