@@ -12,3 +12,7 @@ name_of_site = "Chez Gautoz"
 site_meta_description = "Chez Gautoz c'est du stream jeu vidéo en tout décontraction."
 twitter_name = "@gautoz"
 home_name = "Accueil"
+see_all = "Voir plus"
+go_back = "Revenir à"
+date_format = "EU"  # Choose between EU day-month-year or ISO year-mont-day
+flat_build = False # True or False, if True, all files will be written in the root of the website
