@@ -191,7 +191,7 @@ ul>*+* {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    max-width: 60ch;
+    max-width: 75ch;
     margin-left: auto;
     margin-right: auto;
     padding: 0 var(--s0);
