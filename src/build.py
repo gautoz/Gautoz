@@ -146,7 +146,7 @@ def fix_images_urls(page):
 
 
 def fix_amp(page):
-    page = page.replace(" & ", " &amp; ")
+    page = page.replace("&", "&amp;")
     return page
 
 def fix_wiki_links(page, path):
