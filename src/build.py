@@ -215,7 +215,7 @@ def move_files(site_folder, path):
 # Transforms the file locations to an array of strings
 def clean_path(path):
     path_clean = re.sub('\.md$', '', path)
-    items = path_clean.split('/')
+    items = path_clean.split(os.sep)
     path_items = {
         "slug" : None,
         "date" : None,
