@@ -67,7 +67,7 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
             # If content page, return to parent page
             url_link = build_url + entry['parent_url']
 
-        nav_template = open(template_nav, 'r').read()
+        nav_template = open(template_nav, 'r', encoding="utf8").read()
         nav_html = nav_template.replace("link_url", url_link)
         nav_html = nav_html.replace("text_url", url_text)
         nav_html = nav_html.replace("go_back", config.go_back)
@@ -92,7 +92,7 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
 
         # Write the HTML file
         slug_file = site_folder + entry['slug']
-        with open(slug_file, 'w') as fobj:
+        with open(slug_file, 'w', encoding="utf8") as fobj:
             fobj.write(page_template)
 
     print("All pages created!")
@@ -100,7 +100,7 @@ def generate_html_pages(site_folder, entries, template, sub_pages_list, template
 
 # Get title by parsing and cleaning the first line of the markdown file
 def get_entry_title(page):
-    pageContent = open(page, 'r')
+    pageContent = open(page, 'r', encoding="utf8")
     textContent = pageContent.read()
     textContent = textContent.splitlines()
     textContent = textContent[0]
@@ -178,7 +178,7 @@ def create_entries(pages):
         path = clean_path(page)
         title = get_entry_title(page)
 
-        markdown_text = open(page, 'r').read()
+        markdown_text = open(page, 'r', encoding="utf8").read()
         markdown_text = style_iframes(markdown_text)
         markdown_text = fix_images_urls(markdown_text)
         markdown_text = fix_wiki_links(markdown_text, path["folder"])
@@ -215,7 +215,7 @@ def move_files(site_folder, path):
 # Transforms the file locations to an array of strings
 def clean_path(path):
     path_clean = re.sub('\.md$', '', path)
-    items = path_clean.split('/')
+    items = path_clean.split(os.sep)
     path_items = {
         "slug" : None,
         "date" : None,
@@ -253,8 +253,9 @@ def clean_path(path):
         last_edit = str(subprocess.check_output('git log -1 --format="%ci" ' + path, shell=True)).replace("b'", "").replace("\\n'", '')
         last_edit_iso = datetime.strptime(last_edit[:-6], "%Y-%m-%d %H:%M:%S")
 
-        print(path)
-        print(str(last_edit_iso) + "\n")
+        # debug
+        #print(path)
+        #print(str(last_edit_iso) + "\n")
 
         if config.date_format == "EU":
             path_items["date"] = str(last_edit_iso.strftime("%d-%m-%Y %H:%M:%S"))
@@ -325,7 +326,7 @@ def generate_sub_pages(entries, num, folder, title):
 def create_home_page(template, site_folder):
 
     # Read the file and add "content_list" as a future replacement point for sub page listing
-    html = markdown(open("home.md", "r").read()) + "content_list"
+    html = markdown(open("home.md", "r", encoding="utf8").read()) + "content_list"
 
     # Replace template strings with content
     template = template.replace('page_title', config.home_name)
@@ -338,8 +339,8 @@ def create_home_page(template, site_folder):
 
 # Create RSS Feed
 def create_rss_feed(rss_entries, rss_template, rss_item_template, site_folder):
-    template = open(rss_template, 'r').read()
-    itemTemplate = open(rss_item_template, 'r').read()
+    template = open(rss_template, 'r', encoding="utf8").read()
+    itemTemplate = open(rss_item_template, 'r', encoding="utf8").read()
     rss_entries.sort(key=lambda x: x["iso_date"], reverse=True)
 
     rss_items = ""
@@ -364,7 +365,7 @@ def create_rss_feed(rss_entries, rss_template, rss_item_template, site_folder):
     template = template.replace('rss_content', rss_items)
 
     slug_file = site_folder + "feed.xml"
-    with open(slug_file, 'w') as fobj:
+    with open(slug_file, 'w', encoding="utf8") as fobj:
         fobj.write(template)
 
     return
@@ -382,7 +383,7 @@ def generate_website():
     os.makedirs(config.build_folder + config.medias_folder)
 
     # Get main html template
-    template = open(config.template_file, 'r').read()
+    template = open(config.template_file, 'r', encoding="utf8").read()
 
     # Create home page
     home_page = create_home_page(template, config.build_folder)
@@ -421,7 +422,7 @@ def generate_website():
         'twitter_name', config.twitter_name)
 
     slug_file = config.build_folder + "index.html"
-    with open(slug_file, 'w') as fobj:
+    with open(slug_file, 'w', encoding="utf8") as fobj:
         fobj.write(home_page)
 
     # Create RSS File

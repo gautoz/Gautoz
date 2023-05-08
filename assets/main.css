@@ -253,6 +253,18 @@ ul>*+* {
     }
 }
 
+img.desktop {
+    display: none;
+}
+@media (min-width: 768px) {
+    img.mobile {
+        display: none;
+    }
+    img.desktop {
+        display: block;
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     :root {
         --purple-light: rgb(172, 16, 239);
